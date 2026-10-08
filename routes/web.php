@@ -1,8 +1,9 @@
 <?php
 
 use App\Models\Student;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 Route::get('/', function () {
     return view('welcome');
@@ -15,7 +16,7 @@ Route::get('/students/create', function () {
 Route::post('/students', function (Request $request) {
     $validated = $request->validate([
         'name' => 'required|string|max:255',
-        'email' => 'required|email|max:255|unique:students,email',
+        'email' => 'required|email|max:255|unique:students',
         'phone' => 'required|string|max:20',
         'address' => 'nullable|string|max:500',
         'date_of_birth' => 'nullable|date',
@@ -35,24 +36,20 @@ Route::get('/students', function () {
     ]);
 })->name('students.index');
 
+Route::get('/students/{id}', function ($id) {
+    $student = Student::findOrFail($id);
+
+    return view('student.detail', [
+        'student' => $student,
+    ]);
+});
+
 Route::get('/students/{id}/edit', function ($id) {
     $student = Student::findOrFail($id);
 
     return view('student.edit', [
         'student' => $student,
     ]);
-})->name('students.edit');
-
-Route::delete('/students/{id}', function ($id) {
-    $student = Student::findOrFail($id);
-
-    $student->delete();
-
-    return redirect('/students')
-        ->with(
-            'success',
-            'Student deleted successfully!'
-        );
 });
 
 Route::put('/students/{id}', function (Request $request, $id) {
@@ -75,4 +72,12 @@ Route::put('/students/{id}', function (Request $request, $id) {
 
     return redirect('/students/' . $student->id)
         ->with('success', 'Student updated successfully!');
+});
+
+Route::delete('/students/{id}', function ($id) {
+    $student = Student::findOrFail($id);
+    $student->delete();
+
+    return redirect('/students')
+        ->with('success', 'Student deleted successfully!');
 });
